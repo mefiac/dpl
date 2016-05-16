@@ -1,0 +1,152 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <script src="js/external/jquery/jquery.js"></script>
+    <script src="js/jquery-ui.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.css" />
+    <link rel="stylesheet" type="text/css" href="css/bootstrap-theme.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="fancybox/jquery.fancybox.css" type="text/css" media="screen" />
+    <script src="js/bootstrap.min.js"></script>
+
+</head>
+<body>
+<script language="javascript" type="text/javascript">
+
+    function setimage() {
+        var $input = $("#upload");
+        var fd = new FormData;
+        fd.append('uploadfile', $input.prop('files')[0]);
+        fd.append('size', $("#size").val());
+        fd.append('action', 'upload');
+
+        $.ajax({
+            url: '/generator.php',
+            data: fd,
+            processData: false,
+            contentType: false,
+            type: 'POST',
+            success: function (data) {
+                $("#to").append('<div class="col-md-3 col-sm-4 col-xs-6 thumb"><a class="fancyimage" rel="group" href="uploads/'+data+'"><img class="img-responsive" src="cache/'+data+'"</a></div>').fadeIn();
+                $("#upl").fadeIn( "slow" );
+            }
+        });
+
+        return true;
+    }
+</script>
+<div class="alert alert-danger">
+   </div>
+<style>
+    .activElem{
+        box-shadow: 0px 0px 22px 7px #ff2b2b;
+    }
+    #worksheet{
+        height: 500px;
+        width: 500px;
+        position: relative;
+        float: left;
+        box-shadow: 0px 0px 22px 2px #000;
+        margin: 0px 0px 0px 100px;
+    }
+    .btn-group-vertical{
+        position: relative;
+        float: left;
+        margin-left: 20px;
+    }
+
+
+</style>
+<div class="well">
+    <div class="alert alert-danger">
+        Настройки элемента
+    </div>
+    <table class="table table-bordered">
+        <tr>
+            <td>Ширина</td>  <td><input type="number" value="" onclick="changeElem( this.value, 'width')" id="sh"></td>
+            <td>Высота</td>  <td><input type="number" value="" onclick="changeElem( this.value, 'height')" id="hi"></td>
+            <td>Глубина</td>  <td><input type="number" value="" onclick="changeElem( this.value, 'z-index')" id="hi"></td>
+        </tr>
+    </table>
+</div>
+<div   id="worksheet" >
+
+<div class="elem" id="1" style="width: 50px;height: 50px;background: aqua;"></div>
+
+    <div class="elem" id="2" style="width: 50px;height: 50px;background: aqua;"></div>
+</div>
+<div class="btn-group btn-group-vertical">
+    <button class="btn" onclick="copy()">Копировать</button>
+    <button class="btn" onclick="del()">Удалить</button>
+    <button class="btn">Новый</button>
+    <a download="img.png" href="javascript:void(0)"  onClick="downimg()" >SAVE</a>
+</div>
+
+<script type="text/javascript">
+    var rand = function() {
+        return Math.random().toString(36).substr(2);
+    };
+
+    var token = function() {
+        return rand() + rand();
+    };
+    function changeElem(val,th){
+        var atr=  th.localeCompare("z-index")==0 ? '' : 'px';
+        var elem=$('.activElem');
+        elem.css(th, val + atr);
+
+    }
+
+    function copy(){
+
+        $('.activElem').removeClass('activElem').
+                clone().
+                addClass('activElem').
+                removeAttr('id').
+                attr('id',token()).appendTo("#worksheet");
+    }
+    function del(){
+        $('.activElem').detach();
+    }
+    function downimg(){
+        html2canvas($('#worksheet'), {
+            onrendered: function (canvas) {
+                var img = canvas.toDataURL('image/png').replace("image/png", "image/octet-stream");
+
+                window.location.href = img;
+            }
+        });
+    }
+    $(document).ready(init);
+    function checkParaeters()
+    {
+        var elem=$('.activElem');
+        $('#sh').val( parseInt( elem.css('width')));
+        $('#hi').val( parseInt( elem.css('height')));
+        $('#gl').val( parseInt( elem.css('z-index')));
+
+    }
+    $("#worksheet").bind("DOMSubtreeModified", function() {
+        init();
+        checkParaeters();
+    });
+    $('#worksheet').click(function (event) {
+        var id=event.target.id;
+        if(id.localeCompare("worksheet")!=0 ){
+            $(".elem").removeClass('activElem');
+            $('#'+id).addClass('activElem');
+            checkParaeters();
+        }
+
+
+    });
+
+    function init(){
+        $(".elem").draggable({
+            containment:'parent'
+        });
+
+    }
+</script>
+</body>
+</html>
